@@ -1,40 +1,45 @@
 CoolInput = function(){
 	this.self = this;
-	this.text = 'SAMPLE';
+	this.text = '';
 	this.preparedText = '';
 	this.colors = [];
-	this.maxSize = 70;
+	this.maxSize = 150;
 	this.size = this.maxSize;
-	this.sizeMin = 20;
+	this.sizeMin = 50;
 	this.lastPos = 0;
+	this.charsInLine = 10;
+	this.cursor = {x: 0, y: 0};
+	this.lineWidth = 0;
+	this.xOffstMult = 0.66;
+	this.globalOffset = {x: 5, y: 5};
+	this.maxLineLength = Math.round(this.charsInLine * this.xOffstMult * this.sizeMin);
+	this.maxRows = 4;
+	this.maxWidgetHeight = Math.round(Math.max(this.maxRows * this.sizeMin, this.maxSize));
 	
 	this.draw = function(){
 		ctx.save();
 	
-		ctx.fillRect(0,0, 50, 50);
 		var x = 0;
-		var y = 100;
+		var y = this.size;
 		var lineStart = 0;
-		ctx.font= this.size + "px Helvetica";
+		ctx.font= this.size + "px Lucida Console";
+		ctx.rect(this.globalOffset.x + 0.5, this.globalOffset.y + 0.5, this.maxLineLength, this.maxWidgetHeight);
+		ctx.stroke();
+		var xOffst = this.xOffstMult * this.size;
 		
-		for (var i = 0; i < this.preparedText.length; i++){
-			var ch = this.preparedText.charAt(i);
-			
-			//~ if (this.calculateWidth(lineStart, i) > 1250){
-				//~ lineStart = i;
-				//~ y += 40;
-				//~ x = 0;
-			//~ }
-			
+		for (var i = 0; i < this.text.length; i++){
+			var ch = this.text.charAt(i);
 			
 			ctx.fillStyle = this.colors[i];
-			ctx.fillText(ch, x, y);
-			if (ch == '\n'){
+			ctx.fillText(ch, x * xOffst, y);
+			x += 1;
+			
+			if (x >= this.charsInLine){
 				x = 0;
 				y += this.size;
-			} else {
-				x += ctx.measureText(ch).width;
 			}
+			
+			
 		}
 		
 		ctx.restore();
@@ -57,7 +62,7 @@ CoolInput = function(){
 	}
 	
 	this.generateColors = function(){
-		for (var i = this.colors.length; i < this.preparedText.length; i++){
+		for (var i = this.colors.length; i < this.text.length; i++){
 			this.colors[i] = this.randomColor();
 		}
 	}
@@ -73,22 +78,53 @@ CoolInput = function(){
 		}
 		
 		
-		console.log(width);
+		//console.log(width);
 		return width;
 	}
 	
+	this.measureTextWidth = function(text){
+		var width = 0;
+		for (var i = 0; i < text.length; i++){
+			var ch = this.text.charAt(i);
+			width += ctx.measureText(ch).width;
+		}
+		return width*this.xOffstMult;
+	}
+	
+	
 	this.appendText = function(text){
-		this.text += text;
-		this.prepareText();
-		this.generateColors();
+		if (this.cursor.x >= this.charsInLine){
+			this.cursor.x = 0;
+			this.cursor.y += 1;
+			//var actualLen = 10 * this.xOffstMult * this.size;
+			//console.log(actualLen);
+		} else {
+			this.cursor.x += text.length;
+		}
 		
-		if (this.calculateWidth() > 250){
-			var aspect = 250 / this.calculateWidth();
-			var size = Math.round(this.maxSize * aspect);
-			if (size > this.sizeMin){
-				this.size = size;
+		this.text += text;
+		
+		if (this.cursor.y == 0){
+			var actualLen = this.cursor.x * this.xOffstMult * this.size;
+			if (actualLen > this.maxLineLength){
+				this.size *= this.maxLineLength / actualLen;
+				if (this.size < this.minSize || this.cursor.x == this.charsInLine){
+					this.size = this.sizeMin;
+				}
+				//console.log(this.size);
 			}
 		}
+		
+		//this.prepareText();
+		this.generateColors();
+		
+		//~ if (this.calculateWidth() > 250){
+			//~ var aspect = 250 / this.calculateWidth();
+			//~ var size = Math.round(this.maxSize * aspect);
+			//~ if (size > this.sizeMin){
+				//~ this.size = size;
+			//~ }
+		//~ }
 	}
 	
 	this.randomColor = function(){
@@ -98,8 +134,9 @@ CoolInput = function(){
 	    return "rgb("+ r + "," + g + "," + b +")";
 	}
 	
-	this.prepareText();
-	this.generateColors();
+	this.appendText('3.14');
+	//this.prepareText();
+	//this.generateColors();
 }
 
 CoolInput.prototype.constructor = CoolInput;
