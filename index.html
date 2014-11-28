@@ -1,1 +1,82 @@
-canvas.html
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>Es ist canvas!</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+</head>
+
+<body>
+	<style>
+    .fpsmeter {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        text-align: center;
+    }
+    .fpsmeter p {
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+	</style>
+	
+	<h1>Canvas!</h1>
+	<canvas id="canvas" width="640" height="400"></canvas>
+	<div id="fpscontainer"></div>
+	
+	<script src="cool-input.js"></script>
+	<script src="FPSMeter.js"></script>
+	<script src="jquery-2.0.3.min.js"></script>
+	<script>
+		var canvas = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+		var fps = null;
+		
+		var x = 0;
+		var spd = 0.004;
+		var lastTime = new Date().getTime();  
+		
+		var time = 1, elapsed = 1;
+		
+		function draw(){
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.rect(0, 0, canvas.width, canvas.height);
+			ctx.stroke();
+			fps.update(elapsed);
+			time = new Date().getTime();  
+			elapsed = time - lastTime;  
+			lastTime = time;  
+			x += spd * elapsed;
+			
+			//~ ctx.save();
+				//~ ctx.translate(100, 50);
+				//~ ctx.rotate(x);
+				//~ ctx.clearRect(0, 0, 640, 400);
+				//~ ctx.font="20px Georgia";
+				//~ ctx.fillText("Hello World!",-50 ,10);
+			//~ ctx.restore();
+			
+			input.draw();
+			
+			window.requestAnimationFrame(function(){
+				draw();
+			});
+		}
+		
+		function init(){
+			fps = new FPSMeter("fpsmeter", document.getElementById("fpscontainer"));
+			input = new CoolInput();
+			$(document.body).on('keydown', function(e) {
+			   input.appendText(String.fromCharCode(e.which));
+			})
+			draw();
+		}
+		
+		window.onload = function(){init()};
+	</script>
+</body>
+
+</html>
